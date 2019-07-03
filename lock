@@ -1,0 +1,69 @@
+#!/bin/bash
+
+set +x
+
+cd $(dirname $(realpath $0))
+
+check_locked() {
+    sleep 2
+    pgrep i3lock >/dev/null && LOCKED=true || LOCKED=false
+    [[ $LOCKED == true ]] && return 0 || return 1
+}
+log() {
+    echo `date` "$*" | tee -a /tmp/locker.log
+}
+
+run() {
+    log "Preparing Lock"
+
+    LOCKED=true
+
+    # 1. Run pre-lock hooks
+    log "Running pre-lock hooks:"
+    for hook in `ls ./lock.d/`; do
+        log " - $hook"
+        source ./lock.d/$hook
+        on_lock &
+    done
+
+    # 2. Lock
+    # Try i3lock-color fallback to i3lock
+    log "Locking"
+    i3lock \
+        --nofork \
+        --blur=5 \
+        --ringcolor=$(xrdb_q color7)ff \
+        --insidecolor=$(xrdb_q color8)aa \
+        --timecolor=$(xrdb_q color0)ff \
+        --keyhlcolor=$(xrdb_q color15)ff \
+        --bshlcolor=$(xrdb_q color1)ff \
+        --ringvercolor=$(xrdb_q color12)ff \
+        --insidevercolor=$(xrdb_q color4)dd \
+        --verifcolor=$(xrdb_q color0)ee \
+        --ringwrongcolor=$(xrdb_q color1)ff \
+        --insidewrongcolor=$(xrdb_q color9)dd || \
+        {
+            scrot /tmp/lock.pre.png
+            convert /tmp/lock.pre.png -scale 10% -scale 1000% /tmp/lock.png
+            i3lock \
+                --nofork \
+                --image=/tmp/lock.png
+            rm /tmp/lock{,.pre}.png
+        }
+
+    LOCKED=false
+
+    log "Unlocked"
+
+    # 3. Run post-unlock hooks
+    log "Running post-unlock hooks:"
+    for hook in `ls ./lock.d/`; do
+        log " - $hook"
+        source ./lock.d/$hook
+        on_unlock &
+    done
+
+    log "Done"
+}
+
+[[ "${BASH_SOURCE[0]}" == "${0}" ]] && run
