@@ -1,0 +1,10 @@
+#!/bin/bash
+
+on_lock() {
+    pkill ^dunst -USR1 # pause
+}
+
+on_unlock() {
+    pkill ^dunst -USR2 # resume
+}
+

@@ -1,0 +1,11 @@
+#!/bin/bash
+
+
+
+#on_lock() {
+#    pkill ^steam
+#}
+#
+#on_unlock() {
+#    nohup steam > /dev/null &
+#}

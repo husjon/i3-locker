@@ -1,0 +1,10 @@
+#!/bin/bash
+
+on_lock() {
+    true
+}
+
+on_unlock() {
+    systemctl --user restart synology_drive.service
+}
+

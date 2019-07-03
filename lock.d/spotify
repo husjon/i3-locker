@@ -1,0 +1,9 @@
+#!/bin/bash
+
+#on_lock() {
+#    pkill ^spotify
+#}
+#
+#on_unlock() {
+#    nohup spotify &
+#}
