@@ -20,10 +20,9 @@ run() {
 
     # 1. Run pre-lock hooks
     log "Running pre-lock hooks:"
-    for hook in `ls ./lock.d/`; do
-        log " - $hook"
-        source ./lock.d/$hook
-        on_lock &
+    for hook in ./lock.d/**; do
+        log "  $hook"
+        $hook lock &
     done
 
     # 2. Lock
@@ -57,10 +56,9 @@ run() {
 
     # 3. Run post-unlock hooks
     log "Running post-unlock hooks:"
-    for hook in `ls ./lock.d/`; do
-        log " - $hook"
-        source ./lock.d/$hook
-        on_unlock &
+    for hook in ./lock.d/**; do
+        log "  $hook"
+        $hook unlock &
     done
 
     log "Done"
