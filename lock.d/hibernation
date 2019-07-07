@@ -1,14 +1,14 @@
 #!/bin/bash
 
+check_ssh_connection() {
+    ss -nt | awk '{print $4}' | grep ':22' >/dev/null && return 0 || return 1
+}
+
 on_lock() {
     sleep 5
 
     LOCK_COUNT=0
     LOCK_DURATION=${LOCK_DURATION:-3600}
-
-    check_ssh_connection() {
-        ss -nt | awk '{print $4}' | grep ':22' >/dev/null && return 0 || return 1
-    }
 
     while $(check_locked); do
         [[ $LOCKED = true ]] && ((LOCK_COUNT+=1)) || LOCK_COUNT=0
