@@ -5,7 +5,7 @@ set +x
 cd $(dirname $(realpath $0))
 
 check_locked() {
-    sleep 2
+    sleep 1
     pgrep i3lock >/dev/null && LOCKED=true || LOCKED=false
     [[ $LOCKED == true ]] && return 0 || return 1
 }
