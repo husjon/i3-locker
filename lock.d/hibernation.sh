@@ -8,7 +8,7 @@ on_lock() {
     source ./lock
 
     LOCK_COUNT=0
-    LOCK_DURATION=${LOCK_DURATION:-3600}
+    LOCK_DURATION=${LOCK_DURATION:-60}
 
     while $(check_locked); do
         ((LOCK_COUNT+=1))
