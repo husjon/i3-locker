@@ -9,6 +9,8 @@ DPMS_SUSPEND=20
 DPMS_OFF=120
 
 on_lock() {
+    source ./lock
+
     # xset dpms ${DPMS_STANDBY} ${DPMS_SUSPEND} ${DPMS_OFF}
 
     while $(check_locked); do
