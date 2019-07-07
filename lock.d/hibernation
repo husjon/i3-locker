@@ -24,3 +24,5 @@ on_lock() {
 on_unlock() {
     true
 }
+
+[[ "${BASH_SOURCE[0]}" == "${0}" ]] && on_$1
