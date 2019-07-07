@@ -8,3 +8,4 @@ on_unlock() {
     pkill ^dunst -USR2 # resume
 }
 
+[[ "${BASH_SOURCE[0]}" == "${0}" ]] && on_$1

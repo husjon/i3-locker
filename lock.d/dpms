@@ -28,3 +28,5 @@ on_lock() {
 on_unlock() {
     xset -dpms
 }
+
+[[ "${BASH_SOURCE[0]}" == "${0}" ]] && on_$1
