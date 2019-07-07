@@ -5,7 +5,7 @@ check_ssh_connection() {
 }
 
 on_lock() {
-    sleep 5
+    source ./lock
 
     LOCK_COUNT=0
     LOCK_DURATION=${LOCK_DURATION:-3600}
@@ -18,8 +18,6 @@ on_lock() {
             systemctl suspend
             LOCK_COUNT=0
         fi
-
-        sleep 1
     done
 }
 
