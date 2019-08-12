@@ -14,23 +14,13 @@ log() {
 }
 
 run() {
-    log "Preparing Lock"
-
-    LOCKED=true
-
-    # 1. Run pre-lock hooks
-    log "Running pre-lock hooks:"
-    for hook in ./lock.d/**; do
-        log "  $hook"
-        $hook lock &
-    done
-
-    # 2. Lock
+    # 1. Lock
     # Try i3lock-color fallback to i3lock
     log "Locking"
+    LOCKED=true
     i3lock \
-        --nofork \
         --blur=5 \
+        --nofork \
         --ringcolor=$(xrdb_q color7)ff \
         --insidecolor=$(xrdb_q color8)aa \
         --timecolor=$(xrdb_q color0)ff \
@@ -40,28 +30,43 @@ run() {
         --insidevercolor=$(xrdb_q color4)dd \
         --verifcolor=$(xrdb_q color0)ee \
         --ringwrongcolor=$(xrdb_q color1)ff \
-        --insidewrongcolor=$(xrdb_q color9)dd || \
-        {
-            scrot /tmp/lock.pre.png
-            convert /tmp/lock.pre.png -scale 10% -scale 1000% /tmp/lock.png
-            i3lock \
-                --nofork \
-                --image=/tmp/lock.png
-            rm /tmp/lock{,.pre}.png
-        }
+        --insidewrongcolor=$(xrdb_q color9)dd &
+
+    [[ ! $(pgrep -x i3lock) ]] && {
+        scrot /tmp/lock.pre.png
+        convert /tmp/lock.pre.png -scale 10% -scale 1000% /tmp/lock.png
+        rm /tmp/lock.pre.png
+        i3lock \
+            --nofork \
+            --image=/tmp/lock.png &
+    }
+    while [[ ! $(pgrep i3lock) ]]; do log "waiting for i3lock"; sleep 1; done
+
+    log "Preparing Lock"
+
+    # 2. Run lock hooks
+    log "Running pre-lock hooks:"
+    for hook in ./lock.d/**; do
+        hook_name=$(basename $hook)
+        log "  $hook"
+        $hook lock | tee /tmp/locker.$hook_name.log &
+    done
+
+    # 3. Wait till unlocked
+    while [[ $(pgrep -x i3lock) ]]; do sleep 1; done
 
     LOCKED=false
 
     log "Unlocked"
 
-    # 3. Run post-unlock hooks
+    # 4. Run post-unlock hooks
     log "Running post-unlock hooks:"
     for hook in ./lock.d/**; do
         log "  $hook"
-        $hook unlock &
+        $hook unlock | tee -a /tmp/locker.$hook.log &
     done
 
     log "Done"
 }
 
-[[ "${BASH_SOURCE[0]}" == "${0}" ]] && run
+[[ "${BASH_SOURCE[0]}" == "${0}" ]] && run | tee /dev/null
