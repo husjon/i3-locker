@@ -18,45 +18,31 @@ run() {
     # Try i3lock-color fallback to i3lock
     log "Locking"
     LOCKED=true
+
+    FEH_BG=$(grep -Eo "'.*'" ~/.fehbg | sed "s/'//g")
+    LOCKER_IMAGE=~/.cache/lock.png
+    CACHE_SHA_FILE="$LOCKER_IMAGE.sha256"
+
+    SHA_BG=$(sha256sum "${FEH_BG}" | awk '{print $1}')
+    SHA_CACHE=$(cat "${CACHE_SHA_FILE}" || echo "")
+
+    if [[ "${SHA_BG}" != "${SHA_CACHE}" ]]; then
+        convert \
+            -quality 0% \
+            -resize "2560x1440"! \
+            -scale 10% \
+            -modulate 100,50,100 \
+            -scale 1000% \
+            "${FEH_BG}" \
+            "${LOCKER_IMAGE}"
+        echo "${SHA_BG}" > ${CACHE_SHA_FILE}
+    fi
+
     i3lock \
-        --blur=5 \
         --nofork \
-        --ringcolor=$(xrdb_q color7)ff \
-        --insidecolor=$(xrdb_q color8)aa \
-        --timecolor=$(xrdb_q color0)ff \
-        --keyhlcolor=$(xrdb_q color15)ff \
-        --bshlcolor=$(xrdb_q color1)ff \
-        --ringvercolor=$(xrdb_q color12)ff \
-        --insidevercolor=$(xrdb_q color4)dd \
-        --verifcolor=$(xrdb_q color0)ee \
-        --ringwrongcolor=$(xrdb_q color1)ff \
-        --insidewrongcolor=$(xrdb_q color9)dd &
+        --tiling \
+        --image="${LOCKER_IMAGE}" &
 
-    [[ ! $(pgrep -x i3lock) ]] && {
-        FEH_BG=$(grep -Eo "'.*'" ~/.fehbg | sed "s/'//g")
-        LOCKER_IMAGE=~/.cache/lock.png
-        CACHE_SHA_FILE="$LOCKER_IMAGE.sha256"
-
-        SHA_BG=$(sha256sum "${FEH_BG}" | awk '{print $1}')
-        SHA_CACHE=$(cat "${CACHE_SHA_FILE}" || echo "")
-
-        if [[ "${SHA_BG}" != "${SHA_CACHE}" ]]; then
-            convert \
-                -quality 0% \
-                -resize "2560x1440"! \
-                -scale 10% \
-                -modulate 100,50,100 \
-                -scale 1000% \
-                "${FEH_BG}" \
-                "${LOCKER_IMAGE}"
-            echo "${SHA_BG}" > ${CACHE_SHA_FILE}
-        fi
-
-        i3lock \
-            --nofork \
-            --tiling \
-            --image="${LOCKER_IMAGE}" &
-    }
     while [[ ! $(pgrep i3lock) ]]; do log "waiting for i3lock"; sleep 1; done
 
     log "Preparing Lock"
