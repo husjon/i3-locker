@@ -2,7 +2,7 @@
 
 set +x
 
-cd $(dirname $(realpath $0))
+cd "$(dirname "$(realpath "$0")")" || exit 1
 
 check_locked() {
     sleep 1
@@ -10,7 +10,7 @@ check_locked() {
     [[ $LOCKED == true ]] && return 0 || return 1
 }
 log() {
-    echo `date` "$*" | tee -a /tmp/locker.log
+    echo "$(date)" "$*" | tee -a /tmp/locker.log
 }
 
 run() {
@@ -64,9 +64,9 @@ run() {
     # 2. Run lock hooks
     log "Running pre-lock hooks:"
     for hook in ./lock.d/**; do
-        hook_name=$(basename $hook)
+        hook_name=$(basename "$hook")
         log "  $hook"
-        $hook lock | tee /tmp/locker.$hook_name.log &
+        $hook lock | tee "/tmp/locker.$hook_name.log" &
     done
 
     # 3. Wait till unlocked
@@ -80,7 +80,7 @@ run() {
     log "Running post-unlock hooks:"
     for hook in ./lock.d/**; do
         log "  $hook"
-        $hook unlock | tee -a /tmp/locker.$hook.log &
+        $hook unlock | tee -a "/tmp/locker.$hook.log" &
     done
 
     log "Done"
