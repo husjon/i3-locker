@@ -33,12 +33,29 @@ run() {
         --insidewrongcolor=$(xrdb_q color9)dd &
 
     [[ ! $(pgrep -x i3lock) ]] && {
-        scrot /tmp/lock.pre.png
-        convert /tmp/lock.pre.png -scale 10% -scale 1000% /tmp/lock.png
-        rm /tmp/lock.pre.png
+        FEH_BG=$(grep -Eo "'.*'" ~/.fehbg | sed "s/'//g")
+        LOCKER_IMAGE=~/.cache/lock.png
+        CACHE_SHA_FILE="$LOCKER_IMAGE.sha256"
+
+        SHA_BG=$(sha256sum "${FEH_BG}" | awk '{print $1}')
+        SHA_CACHE=$(cat "${CACHE_SHA_FILE}" || echo "")
+
+        if [[ "${SHA_BG}" != "${SHA_CACHE}" ]]; then
+            convert \
+                -quality 0% \
+                -resize "2560x1440"! \
+                -scale 10% \
+                -modulate 100,50,100 \
+                -scale 1000% \
+                "${FEH_BG}" \
+                "${LOCKER_IMAGE}"
+            echo "${SHA_BG}" > ${CACHE_SHA_FILE}
+        fi
+
         i3lock \
             --nofork \
-            --image=/tmp/lock.png &
+            --tiling \
+            --image="${LOCKER_IMAGE}" &
     }
     while [[ ! $(pgrep i3lock) ]]; do log "waiting for i3lock"; sleep 1; done
 
