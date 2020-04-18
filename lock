@@ -26,7 +26,7 @@ run() {
     SHA_BG=$(sha256sum "${FEH_BG}" | awk '{print $1}')
     SHA_CACHE=$(cat "${CACHE_SHA_FILE}" || echo "")
 
-    if [[ "${SHA_BG}" != "${SHA_CACHE}" ]]; then
+    if [[ ${SHA_BG} != "${SHA_CACHE}" ]]; then
         convert \
             -quality 0% \
             -resize "2560x1440"! \
