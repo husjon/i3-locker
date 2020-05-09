@@ -23,6 +23,8 @@ run() {
     LOCKER_IMAGE=~/.cache/lock.png
     CACHE_SHA_FILE="$LOCKER_IMAGE.sha256"
 
+    [[ ! -f $LOCKER_IMAGE ]] && rm "$CACHE_SHA_FILE"
+
     SHA_BG=$(sha256sum "${FEH_BG}" | awk '{print $1}')
     SHA_CACHE=$(cat "${CACHE_SHA_FILE}" || echo "")
 
