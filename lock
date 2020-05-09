@@ -65,8 +65,9 @@ run() {
     # 4. Run post-unlock hooks
     log "Running post-unlock hooks:"
     for hook in ./lock.d/*.sh; do
+        hook_name=$(basename "$hook")
         log "  $hook"
-        $hook unlock | tee -a "/tmp/locker.$hook.log" &
+        $hook unlock | tee "/tmp/locker.$hook_name.log" &
     done
 
     log "Done"
