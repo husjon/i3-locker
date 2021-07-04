@@ -4,8 +4,8 @@ x_idle() {
     echo $(( $(xssstate -i) / 1000 ))
 }
 
-DPMS_STANDBY=10
-DPMS_SUSPEND=20
+DPMS_STANDBY=20
+DPMS_SUSPEND=30
 DPMS_OFF=120
 
 on_lock() {
