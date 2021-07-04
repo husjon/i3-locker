@@ -16,7 +16,8 @@ log() {
 run() {
     # 1. Lock
     # Try i3lock-color fallback to i3lock
-    log "Locking"
+    log "[!] Preparing Lock"
+
     LOCKED=true
 
     FEH_BG=$(grep -Eo "'.*'" ~/.fehbg | sed "s/'//g")
@@ -41,6 +42,7 @@ run() {
         echo "${SHA_BG}" > ${CACHE_SHA_FILE}
     fi
 
+    log "[!] Locking"
     i3lock \
         --tiling \
         --image="${LOCKER_IMAGE}"
@@ -48,7 +50,7 @@ run() {
     while [[ ! $(pgrep -x i3lock) ]]; do log "waiting for i3lock"; sleep 1; done
 
     # 2. Run lock hooks
-    log "Running pre-lock hooks:"
+    log "[!] Running post-lock hooks:"
     for hook in ./lock.d/*.sh; do
         hook_name=$(basename "$hook")
         log "  $hook"
@@ -60,17 +62,17 @@ run() {
 
     LOCKED=false
 
-    log "Unlocked"
+    log "[+] Unlocked"
 
     # 4. Run post-unlock hooks
-    log "Running post-unlock hooks:"
+    log "[!] Running post-unlock hooks:"
     for hook in ./lock.d/*.sh; do
         hook_name=$(basename "$hook")
         log "  $hook"
         $hook unlock | tee "/tmp/locker.$hook_name.log" &
     done
 
-    log "Done"
+    log "[+] Done"
 }
 
 [[ "${BASH_SOURCE[0]}" == "${0}" ]] && run | tee /dev/null
