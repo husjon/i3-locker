@@ -45,9 +45,7 @@ run() {
         --tiling \
         --image="${LOCKER_IMAGE}"
 
-    while [[ ! $(pgrep i3lock) ]]; do log "waiting for i3lock"; sleep 1; done
-
-    log "Preparing Lock"
+    while [[ ! $(pgrep -x i3lock) ]]; do log "waiting for i3lock"; sleep 1; done
 
     # 2. Run lock hooks
     log "Running pre-lock hooks:"
