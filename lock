@@ -42,9 +42,8 @@ run() {
     fi
 
     i3lock \
-        --nofork \
         --tiling \
-        --image="${LOCKER_IMAGE}" &
+        --image="${LOCKER_IMAGE}"
 
     while [[ ! $(pgrep i3lock) ]]; do log "waiting for i3lock"; sleep 1; done
 
