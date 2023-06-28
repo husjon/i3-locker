@@ -43,7 +43,7 @@ run() {
         --show-failed-attempts \
         --image="${LOCKER_IMAGE}"
 
-    while [[ ! $(pgrep -x i3lock) ]]; do log "waiting for i3lock"; sleep 1; done
+    while [[ ! $(pgrep -x i3lock) ]]; do sleep 0.25; done; sleep 0.25
 
     # 2. Run lock hooks
     log "[!] Running post-lock hooks:"
@@ -54,10 +54,7 @@ run() {
     done
 
     # 3. Wait till unlocked
-    while [[ $(pgrep -x i3lock) ]]; do sleep 1; done
-
-    LOCKED=false
-
+    while [[ $(pgrep -x i3lock) ]]; do sleep 0.25; done; sleep 0.25
     log "[+] Unlocked"
 
     # 4. Run post-unlock hooks
