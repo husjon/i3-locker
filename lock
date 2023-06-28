@@ -5,6 +5,7 @@ IMAGE_BRIGHTNESS=${IMAGE_BRIGHTNESS:-100}
 IMAGE_SATURATION=${IMAGE_SATURATION:-25}
 IMAGE_HUE=${IMAGE_HUE:-100}
 HOOKS_DIRECTORY="${HOME}/.config/locker.d"
+EXAMPLE_HOOK_FILE="${HOOKS_DIRECTORY}/example-hook.sh"
 
 log() {
     echo "$(date)" "$*" | tee -a /tmp/locker.log
@@ -46,10 +47,30 @@ run() {
 
     mkdir -p "${HOOKS_DIRECTORY}"
 
+    if [[ ! -f "${EXAMPLE_HOOK_FILE}" ]]; then
+        log "[!] Created Example Hook at: ${EXAMPLE_HOOK_FILE}"
+        cat <<-EOF > "${EXAMPLE_HOOK_FILE}"
+			#!/bin/bash
+
+			on_lock() {
+			    # Commands to run when locking
+			}
+
+			on_unlock() {
+			    # Commands to run when unlocking
+			}
+
+			[[ "\${BASH_SOURCE[0]}" == "\${0}" ]] && on_\$1
+		EOF
+        chmod +x "${EXAMPLE_HOOK_FILE}"
+    fi
+
     # 2. Run lock hooks
     log "[!] Running post-lock hooks:"
     for hook in "${HOOKS_DIRECTORY}"/*.sh; do
         hook_name=$(basename "$hook")
+        [[ $hook_name == "example-hook.sh" ]] && continue
+
         log "  $hook"
         $hook lock | tee "/tmp/locker.$hook_name.log"
     done
@@ -64,6 +85,8 @@ run() {
     log "[!] Running post-unlock hooks:"
     for hook in "${HOOKS_DIRECTORY}"/*.sh; do
         hook_name=$(basename "$hook")
+        [[ $hook_name == "example-hook.sh" ]] && continue
+
         log "  $hook"
         $hook unlock | tee "/tmp/locker.$hook_name.log"
     done
