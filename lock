@@ -19,6 +19,7 @@ run() {
     SHA_CACHE=$(cat "${CACHE_SHA_FILE}" || echo "")
 
     if ! cat ${CACHE_SHA_FILE} | sha256sum --check > /dev/null; then
+        log "[!] Updating lock image"
         RESOLUTION="$(xrandr | grep ' connected primary' | grep -Eo '[0-9]+x[0-9]+')"
         convert \
             -quality 0% \
@@ -29,6 +30,7 @@ run() {
             "${FEH_BG}" \
             "${LOCKER_IMAGE}"
         sha256sum ${FEH_BG} > ${CACHE_SHA_FILE}
+        log "[+] Updated lock image"
     fi
 
     log "[!] Locking"
@@ -37,7 +39,9 @@ run() {
         --show-failed-attempts \
         --image="${LOCKER_IMAGE}"
 
+    log "[!] Waiting for i3lock to start";
     while [[ ! $(pgrep -x i3lock) ]]; do sleep 0.25; done; sleep 0.25
+    log "[+] Locked"
 
     # 2. Run lock hooks
     log "[!] Running post-lock hooks:"
@@ -46,8 +50,10 @@ run() {
         log "  $hook"
         $hook lock | tee "/tmp/locker.$hook_name.log"
     done
+    log "[+] Done"
 
     # 3. Wait till unlocked
+    log "[!] Waiting for i3lock to be unlocked";
     while [[ $(pgrep -x i3lock) ]]; do sleep 0.25; done; sleep 0.25
     log "[+] Unlocked"
 
@@ -58,7 +64,6 @@ run() {
         log "  $hook"
         $hook unlock | tee "/tmp/locker.$hook_name.log"
     done
-
     log "[+] Done"
 }
 
