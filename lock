@@ -50,7 +50,7 @@ run() {
     for hook in ./lock.d/*.sh; do
         hook_name=$(basename "$hook")
         log "  $hook"
-        $hook lock | tee "/tmp/locker.$hook_name.log" &
+        $hook lock | tee "/tmp/locker.$hook_name.log"
     done
 
     # 3. Wait till unlocked
@@ -62,7 +62,7 @@ run() {
     for hook in ./lock.d/*.sh; do
         hook_name=$(basename "$hook")
         log "  $hook"
-        $hook unlock | tee "/tmp/locker.$hook_name.log" &
+        $hook unlock | tee "/tmp/locker.$hook_name.log"
     done
 
     log "[+] Done"
