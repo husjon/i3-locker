@@ -1,14 +1,10 @@
 #!/bin/bash
 
-set +x
+IMAGE_RESCALE=${IMAGE_RESCALE:-10}
+IMAGE_BRIGHTNESS=${IMAGE_BRIGHTNESS:-100}
+IMAGE_SATURATION=${IMAGE_SATURATION:-25}
+IMAGE_HUE=${IMAGE_HUE:-100}
 
-cd "$(dirname "$(realpath "$0")")" || exit 1
-
-check_locked() {
-    sleep 1
-    pgrep i3lock >/dev/null && LOCKED=true || LOCKED=false
-    [[ $LOCKED == true ]] && return 0 || return 1
-}
 log() {
     echo "$(date)" "$*" | tee -a /tmp/locker.log
 }
@@ -34,9 +30,9 @@ run() {
         convert \
             -quality 0% \
             -resize "${RESOLUTION}" \
-            -scale 10% \
-            -modulate 100,50,100 \
-            -scale 1000% \
+            -scale $(( 100 / ${IMAGE_RESCALE} ))% \
+            -modulate ${IMAGE_BRIGHTNESS},${IMAGE_SATURATION},${IMAGE_HUE} \
+            -scale $(( 100 * ${IMAGE_RESCALE} ))% \
             "${FEH_BG}" \
             "${LOCKER_IMAGE}"
         echo "${SHA_BG}" > ${CACHE_SHA_FILE}
