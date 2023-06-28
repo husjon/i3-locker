@@ -4,6 +4,7 @@ IMAGE_RESCALE=${IMAGE_RESCALE:-10}
 IMAGE_BRIGHTNESS=${IMAGE_BRIGHTNESS:-100}
 IMAGE_SATURATION=${IMAGE_SATURATION:-25}
 IMAGE_HUE=${IMAGE_HUE:-100}
+HOOKS_DIRECTORY="${HOME}/.config/locker.d"
 
 log() {
     echo "$(date)" "$*" | tee -a /tmp/locker.log
@@ -41,9 +42,11 @@ run() {
     while [[ ! $(pgrep -x i3lock) ]]; do sleep 0.25; done; sleep 0.25
     log "[+] Locked"
 
+    mkdir -p "${HOOKS_DIRECTORY}"
+
     # 2. Run lock hooks
     log "[!] Running post-lock hooks:"
-    for hook in ./lock.d/*.sh; do
+    for hook in "${HOOKS_DIRECTORY}"/*.sh; do
         hook_name=$(basename "$hook")
         log "  $hook"
         $hook lock | tee "/tmp/locker.$hook_name.log"
@@ -57,7 +60,7 @@ run() {
 
     # 4. Run post-unlock hooks
     log "[!] Running post-unlock hooks:"
-    for hook in ./lock.d/*.sh; do
+    for hook in "${HOOKS_DIRECTORY}"/*.sh; do
         hook_name=$(basename "$hook")
         log "  $hook"
         $hook unlock | tee "/tmp/locker.$hook_name.log"
