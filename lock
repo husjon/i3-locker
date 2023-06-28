@@ -10,12 +10,6 @@ log() {
 }
 
 run() {
-    # 1. Lock
-    # Try i3lock-color fallback to i3lock
-    log "[!] Preparing Lock"
-
-    LOCKED=true
-
     FEH_BG=$(grep -Eo "'.*'" ~/.fehbg | sed "s/'//g")
     LOCKER_IMAGE=~/.cache/lock.png
     CACHE_SHA_FILE="$LOCKER_IMAGE.sha256"
