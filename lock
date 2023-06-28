@@ -16,8 +16,6 @@ run() {
 
     [[ ! -f $LOCKER_IMAGE ]] && rm -f "$CACHE_SHA_FILE"
 
-    SHA_CACHE=$(cat "${CACHE_SHA_FILE}" || echo "")
-
     if ! cat ${CACHE_SHA_FILE} | sha256sum --check > /dev/null; then
         log "[!] Updating lock image"
         RESOLUTION="$(xrandr | grep ' connected primary' | grep -Eo '[0-9]+x[0-9]+')"
