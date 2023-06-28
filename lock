@@ -22,7 +22,9 @@ run() {
         RESOLUTION="$(xrandr | grep ' connected primary' | grep -Eo '[0-9]+x[0-9]+')"
         convert \
             -quality 0% \
-            -resize "${RESOLUTION}" \
+            -resize "${RESOLUTION}^" \
+            -extent "${RESOLUTION}" \
+            -gravity center \
             -scale $(( 100 / ${IMAGE_RESCALE} ))% \
             -modulate ${IMAGE_BRIGHTNESS},${IMAGE_SATURATION},${IMAGE_HUE} \
             -scale $(( 100 * ${IMAGE_RESCALE} ))% \
