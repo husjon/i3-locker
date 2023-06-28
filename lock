@@ -20,12 +20,11 @@ run() {
     LOCKER_IMAGE=~/.cache/lock.png
     CACHE_SHA_FILE="$LOCKER_IMAGE.sha256"
 
-    [[ ! -f $LOCKER_IMAGE ]] && rm "$CACHE_SHA_FILE"
+    [[ ! -f $LOCKER_IMAGE ]] && rm -f "$CACHE_SHA_FILE"
 
-    SHA_BG=$(sha256sum "${FEH_BG}" | awk '{print $1}')
     SHA_CACHE=$(cat "${CACHE_SHA_FILE}" || echo "")
 
-    if [[ ${SHA_BG} != "${SHA_CACHE}" ]]; then
+    if ! cat ${CACHE_SHA_FILE} | sha256sum --check > /dev/null; then
         RESOLUTION="$(xrandr | grep ' connected primary' | grep -Eo '[0-9]+x[0-9]+')"
         convert \
             -quality 0% \
@@ -35,7 +34,7 @@ run() {
             -scale $(( 100 * ${IMAGE_RESCALE} ))% \
             "${FEH_BG}" \
             "${LOCKER_IMAGE}"
-        echo "${SHA_BG}" > ${CACHE_SHA_FILE}
+        sha256sum ${FEH_BG} > ${CACHE_SHA_FILE}
     fi
 
     log "[!] Locking"
