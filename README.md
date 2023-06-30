@@ -37,4 +37,4 @@ on_unlock() {
 
 
 ### Example Hooks
-Coming Soon<sup>TM</sup>
+[locker/wiki#example-hooks](https://github.com/husjon/locker/wiki#example-hooks)
