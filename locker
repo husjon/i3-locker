@@ -28,12 +28,12 @@ run() {
             -resize "${RESOLUTION}^" \
             -extent "${RESOLUTION}" \
             -gravity center \
-            -scale $(( 100 / ${IMAGE_RESCALE} ))% \
-            -modulate ${IMAGE_BRIGHTNESS},${IMAGE_SATURATION},${IMAGE_HUE} \
-            -scale $(( 100 * ${IMAGE_RESCALE} ))% \
+            -scale $(( 100 / "${IMAGE_RESCALE}" ))% \
+            -modulate "${IMAGE_BRIGHTNESS}","${IMAGE_SATURATION}","${IMAGE_HUE}" \
+            -scale $(( 100 * "${IMAGE_RESCALE}" ))% \
             "${FEH_BG}" \
             "${LOCKER_IMAGE}"
-        sha256sum ${FEH_BG} > ${CACHE_SHA_FILE}
+        sha256sum "${FEH_BG}" > ${CACHE_SHA_FILE}
         log "[+] Updated lock image"
     fi
 
