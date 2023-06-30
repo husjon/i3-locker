@@ -1,78 +1,105 @@
 #!/bin/bash
+# VERSION: v0.1.0
 
-set +x
+IMAGE_RESCALE=${IMAGE_RESCALE:-10}
+IMAGE_BRIGHTNESS=${IMAGE_BRIGHTNESS:-100}
+IMAGE_SATURATION=${IMAGE_SATURATION:-25}
+IMAGE_HUE=${IMAGE_HUE:-100}
+HOOKS_DIRECTORY="${HOME}/.config/locker.d"
+EXAMPLE_HOOK_FILE="${HOOKS_DIRECTORY}/example-hook.sh"
 
-cd "$(dirname "$(realpath "$0")")" || exit 1
-
-check_locked() {
-    sleep 1
-    pgrep i3lock >/dev/null && LOCKED=true || LOCKED=false
-    [[ $LOCKED == true ]] && return 0 || return 1
-}
 log() {
     echo "$(date)" "$*" | tee -a /tmp/locker.log
 }
 
 run() {
-    # 1. Lock
-    # Try i3lock-color fallback to i3lock
-    log "[!] Preparing Lock"
-
-    LOCKED=true
-
     FEH_BG=$(grep -Eo "'.*'" ~/.fehbg | sed "s/'//g")
     LOCKER_IMAGE=~/.cache/lock.png
     CACHE_SHA_FILE="$LOCKER_IMAGE.sha256"
 
-    [[ ! -f $LOCKER_IMAGE ]] && rm "$CACHE_SHA_FILE"
+    [[ ! -f $LOCKER_IMAGE ]] && rm -f "$CACHE_SHA_FILE"
 
-    SHA_BG=$(sha256sum "${FEH_BG}" | awk '{print $1}')
-    SHA_CACHE=$(cat "${CACHE_SHA_FILE}" || echo "")
-
-    if [[ ${SHA_BG} != "${SHA_CACHE}" ]]; then
+    if ! cat ${CACHE_SHA_FILE} | sha256sum --check > /dev/null; then
+        log "[!] Updating lock image"
         RESOLUTION="$(xrandr | grep ' connected primary' | grep -Eo '[0-9]+x[0-9]+')"
         convert \
             -quality 0% \
-            -resize "${RESOLUTION}" \
-            -scale 10% \
-            -modulate 100,50,100 \
-            -scale 1000% \
+            -resize "${RESOLUTION}^" \
+            -extent "${RESOLUTION}" \
+            -gravity center \
+            -scale $(( 100 / ${IMAGE_RESCALE} ))% \
+            -modulate ${IMAGE_BRIGHTNESS},${IMAGE_SATURATION},${IMAGE_HUE} \
+            -scale $(( 100 * ${IMAGE_RESCALE} ))% \
             "${FEH_BG}" \
             "${LOCKER_IMAGE}"
-        echo "${SHA_BG}" > ${CACHE_SHA_FILE}
+        sha256sum ${FEH_BG} > ${CACHE_SHA_FILE}
+        log "[+] Updated lock image"
     fi
 
     log "[!] Locking"
     i3lock \
         --tiling \
+        --show-failed-attempts \
         --image="${LOCKER_IMAGE}"
 
-    while [[ ! $(pgrep -x i3lock) ]]; do log "waiting for i3lock"; sleep 1; done
+    log "[!] Waiting for i3lock to start";
+    while [[ ! $(pgrep -x i3lock) ]]; do sleep 0.25; done; sleep 0.25
+    log "[+] Locked"
+
+    mkdir -p "${HOOKS_DIRECTORY}"
+
+    if [[ ! -f "${EXAMPLE_HOOK_FILE}" ]]; then
+        log "[!] Created Example Hook at: ${EXAMPLE_HOOK_FILE}"
+        cat <<-EOF > "${EXAMPLE_HOOK_FILE}"
+			#!/bin/bash
+
+			on_lock() {
+			    # Commands to run when locking
+			}
+
+			on_unlock() {
+			    # Commands to run when unlocking
+			}
+
+			[[ "\${BASH_SOURCE[0]}" == "\${0}" ]] && on_\$1
+		EOF
+        chmod +x "${EXAMPLE_HOOK_FILE}"
+    fi
 
     # 2. Run lock hooks
     log "[!] Running post-lock hooks:"
-    for hook in ./lock.d/*.sh; do
+    for hook in "${HOOKS_DIRECTORY}"/*.sh; do
         hook_name=$(basename "$hook")
+        [[ $hook_name == "example-hook.sh" ]] && continue
+
         log "  $hook"
-        $hook lock | tee "/tmp/locker.$hook_name.log" &
+        $hook lock | tee "/tmp/locker.$hook_name.log"
     done
+    log "[+] Done"
 
     # 3. Wait till unlocked
-    while [[ $(pgrep -x i3lock) ]]; do sleep 1; done
-
-    LOCKED=false
-
+    log "[!] Waiting for i3lock to be unlocked";
+    while [[ $(pgrep -x i3lock) ]]; do sleep 0.25; done; sleep 0.25
     log "[+] Unlocked"
 
     # 4. Run post-unlock hooks
     log "[!] Running post-unlock hooks:"
-    for hook in ./lock.d/*.sh; do
+    for hook in "${HOOKS_DIRECTORY}"/*.sh; do
         hook_name=$(basename "$hook")
-        log "  $hook"
-        $hook unlock | tee "/tmp/locker.$hook_name.log" &
-    done
+        [[ $hook_name == "example-hook.sh" ]] && continue
 
+        log "  $hook"
+        $hook unlock | tee "/tmp/locker.$hook_name.log"
+    done
     log "[+] Done"
 }
 
-[[ "${BASH_SOURCE[0]}" == "${0}" ]] && run | tee /dev/null
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    pgrep i3lock > /dev/null && exit 0
+
+    set +x
+
+    cd "$(dirname "$(realpath "$0")")" || exit 1
+
+    run | tee /dev/null
+fi
