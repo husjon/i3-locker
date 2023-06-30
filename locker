@@ -13,13 +13,14 @@ log() {
 }
 
 run() {
-    FEH_BG=$(grep -Eo "'.*'" ~/.fehbg | sed "s/'//g")
+    FEH_BG="$(grep -Eo "'.*'" ~/.fehbg | sed "s/'//g")"
     LOCKER_IMAGE=~/.cache/lock.png
     CACHE_SHA_FILE="$LOCKER_IMAGE.sha256"
+    CACHED_BG_PATH="$(cat $CACHE_SHA_FILE | awk '{print $2}')"
 
     [[ ! -f $LOCKER_IMAGE ]] && rm -f "$CACHE_SHA_FILE"
 
-    if ! cat ${CACHE_SHA_FILE} | sha256sum --check > /dev/null; then
+    if [ "$CACHED_BG_PATH" != "$FEH_BG" ] || ! cat ${CACHE_SHA_FILE} | sha256sum --check > /dev/null; then
         log "[!] Updating lock image"
         RESOLUTION="$(xrandr | grep ' connected primary' | grep -Eo '[0-9]+x[0-9]+')"
         convert \
