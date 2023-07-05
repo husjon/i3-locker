@@ -74,7 +74,7 @@ run() {
         [[ $hook_name == "example-hook.sh" ]] && continue
 
         log "  $hook"
-        $hook lock | tee "/tmp/locker.$hook_name.log"
+        $hook lock >> "/tmp/locker.$hook_name.log"
     done
     log "[+] Done"
 
@@ -90,7 +90,7 @@ run() {
         [[ $hook_name == "example-hook.sh" ]] && continue
 
         log "  $hook"
-        $hook unlock | tee "/tmp/locker.$hook_name.log"
+        $hook unlock >> "/tmp/locker.$hook_name.log"
     done
     log "[+] Done"
 }
